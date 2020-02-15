@@ -1,0 +1,23 @@
+name: 'GitHub Actions Digital Ocean Snapshot creator'
+
+on:
+  push:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: 'Install node'
+        uses: actions/setup-node@v1
+      - name: 'Install NPM dependencies'
+        run: npm install
+      - name: 'Run code'
+        run: node index.js
+        env:
+          SLACK_WEBHOOK_SECRET: ${{ secrets.SLACK_WEBHOOK_SECRET }}
+          SLACK_CHANNEL: ${{secrets.SLACK_CHANNEL}}
+          DROPLET_NAME: ${{ secrets.DROPLET_NAME }}
+          DO_API_KEY: ${{ secrets.DO_API_KEY }}

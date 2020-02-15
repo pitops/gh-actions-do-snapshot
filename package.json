@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "debug": "DEBUG=* node ./index.js"
+  },
   "dependencies": {
+    "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "node-fetch": "^2.6.0",
     "slack-node": "^0.1.8"
