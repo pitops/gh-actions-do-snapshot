@@ -70,16 +70,19 @@ const getPrefixedSnapshots = snapshots =>
   snapshots.filter(snapshot => snapshot.name.includes(snapshotPrefix))
 
 const oldSnapshotsCleanup = async snapshots => {
-  messageBUS.push('Deleting old snapshots')
-  for (let i = 0; i < snapshots.length; i++) {
-    await request(
-      `${DO_API_BASE}/snapshots/${snapshots[i].id}`,
-      {
-        method: 'DELETE'
-      },
-      true
-    )
-  }
+  messageBUS.push('Deleting oldest snapshot')
+  if (snapshots.length < 12) return
+
+  // removing the oldest snapshot
+  const snapshotToDelete = snapshots[0]
+
+  await request(
+    `${DO_API_BASE}/snapshots/${snapshotToDelete.id}`,
+    {
+      method: 'DELETE'
+    },
+    true
+  )
 }
 
 const main = async () => {
