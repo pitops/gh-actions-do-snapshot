@@ -18,6 +18,7 @@ slack.setWebhook(`https://hooks.slack.com/services/${slackWebhookSecret}`)
 const slackWebhook = util.promisify(slack.webhook)
 
 const messageBUS = []
+let snapshots = []
 
 const postToSlack = async message => {
   debug(`slackChannel: ${slackChannel}`)
@@ -60,11 +61,25 @@ const createSnapshot = async droplet => {
   return res
 }
 
-const getDropletSnapshots = async droplet => {
-  messageBUS.push('Getting droplet snapshots')
-  const res = await request(`${DO_API_BASE}/droplets/${droplet.id}/snapshots`)
+const getDropletSnapshots = async (droplet, url = null) => {
+  messageBUS.push(
+    `${
+      url
+        ? 'Getting droplet snapshots (next page)'
+        : 'Getting droplet snapshots'
+    }`
+  )
+  const reqUrl = url || `${DO_API_BASE}/droplets/${droplet.id}/snapshots`
+  const res = await request(reqUrl)
 
-  return res.snapshots
+  snapshots = snapshots.concat(res.snapshots)
+
+  if (res.links && res.links.pages && res.links.pages.next) {
+    console.log('entered links', res.links)
+    return getDropletSnapshots(droplet, res.links.pages.next)
+  }
+
+  return snapshots
 }
 const getPrefixedSnapshots = snapshots =>
   snapshots.filter(snapshot => snapshot.name.includes(snapshotPrefix))
@@ -87,8 +102,8 @@ const oldSnapshotsCleanup = async snapshots => {
 
 const main = async () => {
   const droplet = await getDropletByName(process.env.DROPLET_NAME)
-  const dropletSnapshots = await getDropletSnapshots(droplet)
-  const snapshotsToDelete = getPrefixedSnapshots(dropletSnapshots)
+  const allSnapshots = await getDropletSnapshots(droplet)
+  const snapshotsToDelete = getPrefixedSnapshots(allSnapshots)
 
   await createSnapshot(droplet)
   await oldSnapshotsCleanup(snapshotsToDelete)
