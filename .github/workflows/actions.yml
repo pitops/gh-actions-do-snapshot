@@ -3,7 +3,7 @@ name: 'GitHub Actions Digital Ocean Snapshot creator'
 on:
   push:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 */2 * * *'
 
 jobs:
   bot:
